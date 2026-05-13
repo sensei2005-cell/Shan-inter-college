@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Result Register – Shan Inter College</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --navy:#0b1a2e;--deep:#0f2244;--gold:#c8973a;--gold2:#e8b655;
+  --cream:#fdf9f2;--white:#fff;--border:#b0935a;
+  --h1:#1a3460;--h2:#2a4a7a;--h3:#163060;--h4:#0f2244;--h5:#0b1a2e;
+  --stripe:#f5f0e8;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:#cfc8bc;min-height:100vh;padding:24px 10px;display:flex;flex-direction:column;align-items:center}
+
+/* TOOLBAR */
+.toolbar{width:100%;max-width:1400px;display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.toolbar-title{flex:1;font-size:15px;font-weight:700;color:#0b1a2e}
+.tip{font-size:11px;color:#555;background:rgba(200,151,58,.18);padding:4px 12px;border-radius:100px;font-weight:600}
+.btn{padding:8px 18px;border-radius:7px;border:none;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s}
+.btn-gold{background:linear-gradient(135deg,#c8973a,#e8b655);color:#0b1a2e}
+.btn-gold:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(200,151,58,.35)}
+.btn-out{background:transparent;border:2px solid #0b1a2e;color:#0b1a2e}
+.btn-out:hover{background:#0b1a2e;color:#fff}
+.btn-logo{background:linear-gradient(135deg,#1a3460,#2a4a7a);color:#e8b655;border:2px solid #c8973a}
+.btn-logo:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(26,52,96,.4)}
+
+/* LOGO MODAL */
+.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:1000;align-items:center;justify-content:center}
+.modal-overlay.active{display:flex}
+.modal{background:#fff;border-radius:12px;padding:28px;width:380px;max-width:95vw;box-shadow:0 24px 80px rgba(0,0,0,.35);border:2px solid var(--border)}
+.modal h3{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:#0b1a2e;margin-bottom:6px}
+.modal p{font-size:12px;color:#666;margin-bottom:18px}
+.logo-drop{border:2px dashed var(--border);border-radius:8px;padding:24px;text-align:center;cursor:pointer;transition:all .2s;background:#fdf9f2;margin-bottom:16px}
+.logo-drop:hover,.logo-drop.dragover{border-color:#c8973a;background:rgba(200,151,58,.08)}
+.logo-drop .icon{font-size:32px;margin-bottom:8px}
+.logo-drop p{font-size:12px;color:#888;margin:0}
+.logo-drop strong{display:block;font-size:13px;color:#0b1a2e;margin-bottom:4px}
+#logoFileInput{display:none}
+.logo-preview-wrap{display:none;text-align:center;margin-bottom:16px}
+.logo-preview-wrap img{max-width:120px;max-height:120px;border-radius:8px;border:2px solid var(--border);object-fit:contain;padding:6px;background:#fff}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end}
+.btn-sm{padding:7px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;border:none}
+.btn-apply{background:linear-gradient(135deg,#c8973a,#e8b655);color:#0b1a2e}
+.btn-remove{background:#fee2e2;color:#b91c1c}
+.btn-cancel{background:#f3f4f6;color:#374151}
+
+/* CARD */
+.card{width:100%;max-width:1400px;background:#fff;border:3px solid var(--border);border-radius:4px;box-shadow:0 16px 60px rgba(0,0,0,.2);overflow:hidden}
+
+/* HEADER */
+.ch{background:linear-gradient(135deg,#0b1a2e 0%,#1a3460 60%,#112b55 100%);padding:16px 26px 14px;border-bottom:4px solid var(--gold);position:relative;overflow:hidden}
+.ch::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(200,151,58,.08) 0%,transparent 70%)}
+.hi{display:flex;align-items:center;gap:16px}
+
+/* SEAL / LOGO */
+.seal{width:62px;height:62px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,#c8973a,#e8b655);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:800;color:#0b1a2e;border:3px solid rgba(255,255,255,.2);box-shadow:0 0 0 5px rgba(200,151,58,.15);overflow:hidden;cursor:pointer;position:relative;transition:all .2s}
+.seal:hover::after{content:'📷';position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;font-size:20px;border-radius:50%}
+.seal img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.seal-hint{font-size:9px;color:rgba(255,255,255,.4);margin-top:4px;text-align:center;letter-spacing:.5px}
+
+.cn{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:#fff}
+.cs{font-size:10px;color:rgba(255,255,255,.5);letter-spacing:2px;text-transform:uppercase;margin-top:3px}
+.ca{font-size:10px;color:#e8b655;font-weight:600;margin-top:3px;letter-spacing:.8px}
+.badge{display:inline-block;background:linear-gradient(135deg,#c8973a,#e8b655);color:#0b1a2e;font-weight:800;font-size:17px;font-family:'Cormorant Garamond',serif;letter-spacing:1px;padding:5px 16px;border-radius:5px}
+.bsub{font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.8px;margin-top:5px;text-align:right}
+
+/* Editable header fields */
+[contenteditable="true"]{outline:none;transition:background .15s,border-color .15s}
+[contenteditable="true"]:hover{background:rgba(200,151,58,.08);border-radius:3px}
+[contenteditable="true"]:focus{background:rgba(200,151,58,.15);border-radius:3px;box-shadow:0 0 0 1px rgba(200,151,58,.4)}
+.ch [contenteditable="true"]:hover{background:rgba(255,255,255,.08)}
+.ch [contenteditable="true"]:focus{background:rgba(255,255,255,.12)}
+
+/* META */
+.meta{background:#fdf9f2;border-bottom:2px solid var(--border);padding:8px 18px;display:flex;flex-wrap:wrap}
+.mc{flex:1;min-width:150px;padding:3px 12px;border-right:1px dashed rgba(176,147,90,.35)}
+.mc:last-child{border-right:none}
+.ml{font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#c8973a;margin-bottom:2px;cursor:text}
+.ml[contenteditable="true"]:focus{color:#0b1a2e}
+.mv{font-size:12px;font-weight:600;color:#0b1a2e;border-bottom:1.5px dashed rgba(200,151,58,.35);padding-bottom:2px;min-height:20px;outline:none}
+.mv:focus{border-bottom-color:#c8973a;background:rgba(200,151,58,.05)}
+
+/* TABLE */
+.twrap{overflow-x:auto}
+table.mt{width:100%;border-collapse:collapse;font-size:11px;min-width:1150px}
+
+/* group headers */
+.grp th{padding:6px 3px;text-align:center;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:1px solid rgba(176,147,90,.3);color:#e8b655}
+.g-mon{background:#1e3a6e}.g-best{background:#152d58}
+.g-hy{background:#163060}.g-an{background:#0f2244}.g-tot{background:#0b1a2e}
+
+/* Editable header cells */
+th[contenteditable="true"]{cursor:text}
+th[contenteditable="true"]:hover{background:rgba(255,255,255,.1)!important}
+th[contenteditable="true"]:focus{background:rgba(200,151,58,.2)!important;outline:none}
+
+/* sub-headers */
+.shd th{padding:5px 3px;text-align:center;font-size:9px;font-weight:600;color:rgba(255,255,255,.85);background:#2a4a7a;border:1px solid rgba(176,147,90,.2);white-space:nowrap}
+.shd th.sl{background:#1a3460;text-align:left;padding-left:8px}
+
+/* subject rows */
+tr.sr{background:#fff;transition:background .12s}
+tr.sr:nth-child(even){background:#f5f0e8}
+tr.sr:hover{background:rgba(200,151,58,.07)}
+tr.sr td{border:1px solid rgba(176,147,90,.18);padding:4px 3px;text-align:center;color:#0b1a2e;vertical-align:middle}
+tr.sr td.sn{text-align:left;padding-left:8px;font-weight:600;font-size:11px}
+.scode{font-size:9px;color:#8a9ab0;display:block;font-weight:400}
+
+/* total row */
+tr.tr td{background:#f0e8d4;font-weight:700;font-size:11px;border-top:2px solid var(--border);border-bottom:2px solid var(--border);border-left:1px solid rgba(176,147,90,.25);border-right:1px solid rgba(176,147,90,.25);padding:5px 3px;text-align:center;color:#0b1a2e}
+tr.tr td.lbl{text-align:left;padding-left:8px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gold)}
+
+/* summary row */
+tr.sumr td{background:linear-gradient(135deg,#0b1a2e,#0f2244);color:#e8b655;font-weight:700;font-size:11px;padding:7px 4px;text-align:center;border:1px solid rgba(200,151,58,.2)}
+tr.sumr td.lbl{text-align:left;padding-left:8px;color:rgba(255,255,255,.45);font-size:9px;letter-spacing:1px;text-transform:uppercase}
+
+/* inputs */
+input.e{background:transparent;border:none;font-family:'Outfit',sans-serif;font-size:11px;color:inherit;font-weight:inherit;width:100%;text-align:center;outline:none;padding:0;transition:background .12s}
+input.e:focus{background:rgba(200,151,58,.12);border-radius:2px}
+input.e[type=number]::-webkit-inner-spin-button,
+input.e[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
+input.e[type=number]{-moz-appearance:textfield}
+
+/* grade pills */
+.g{display:inline-block;padding:2px 7px;border-radius:100px;font-size:10px;font-weight:800}
+.gAp{background:#dcfce7;color:#15803d}.gA{background:#dbeafe;color:#1d4ed8}
+.gBp{background:#ede9fe;color:#6d28d9}.gB{background:#fef9c3;color:#854d0e}
+.gC{background:#ffedd5;color:#c2410c}.gD{background:#fee2e2;color:#b91c1c}
+.gF{background:#fca5a5;color:#7f1d1d}
+.pass{color:#15803d;font-weight:800;font-size:10px}
+.fail{color:#b91c1c;font-weight:800;font-size:10px}
+
+/* bar */
+.bw{width:100%;height:4px;background:#e0d8cc;border-radius:100px;overflow:hidden;margin:3px auto;max-width:65px}
+.bf{height:100%;border-radius:100px;transition:width .5s}
+
+/* bottom */
+.bot{display:grid;grid-template-columns:1fr 1fr 1fr;border-top:2px solid var(--border)}
+.bc{padding:13px 20px;border-right:1px solid rgba(176,147,90,.3)}
+.bc:last-child{border-right:none}
+.bl{font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#c8973a;margin-bottom:5px}
+.rt{font-size:12px;color:#0b1a2e;font-weight:500;min-height:18px;border-bottom:1px dashed rgba(200,151,58,.35);outline:none}
+.sl2{border-top:1.5px solid #bbb;margin-top:28px;margin-bottom:5px}
+.sn2{font-size:11px;font-weight:700;color:#0b1a2e;text-align:center}
+.sr2{font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:#8a9ab0;text-align:center;margin-top:2px}
+
+/* footer */
+.cf{background:linear-gradient(135deg,#0b1a2e,#0f2244);padding:10px 24px;display:flex;align-items:center;justify-content:space-between;border-top:3px solid var(--gold)}
+.fn{font-size:9px;color:rgba(255,255,255,.28)}
+.fs{font-size:10px;color:#e8b655;font-weight:700}
+
+/* legend */
+.legend{width:100%;max-width:1400px;margin-top:14px;background:rgba(255,255,255,.6);border-radius:7px;padding:9px 16px;display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.lt{font-size:9px;font-weight:800;color:#0b1a2e;letter-spacing:1px;margin-right:3px}
+
+/* Edit indicators */
+.edit-hint{position:absolute;top:2px;right:4px;font-size:8px;color:rgba(200,151,58,.6);pointer-events:none;opacity:0;transition:opacity .2s}
+.ch:hover .edit-hint{opacity:1}
+
+@media print{
+  body{background:#fff;padding:0}
+  .toolbar,.legend,.modal-overlay{display:none}
+  .card{box-shadow:none;max-width:100%;border:1px solid #999}
+  .seal:hover::after{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGO MODAL -->
+<div class="modal-overlay" id="logoModal">
+  <div class="modal">
+    <h3>🏫 School Logo</h3>
+    <p>Upload your school logo. It will replace the seal in the header. Supports JPG, PNG, SVG, WebP.</p>
+    
+    <div class="logo-drop" id="logoDrop" onclick="document.getElementById('logoFileInput').click()">
+      <div class="icon">🖼️</div>
+      <strong>Click to browse or drag & drop</strong>
+      <p>JPG, PNG, SVG, WebP — max 5MB</p>
+    </div>
+    <input type="file" id="logoFileInput" accept="image/*"/>
+    
+    <div class="logo-preview-wrap" id="logoPreviewWrap">
+      <img id="logoPreviewImg" src="" alt="Logo preview"/>
+      <p style="font-size:11px;color:#666;margin-top:6px">Preview — looks good?</p>
+    </div>
+    
+    <div class="modal-btns">
+      <button class="btn-sm btn-remove" id="btnRemoveLogo" style="display:none" onclick="removeLogo()">Remove Logo</button>
+      <button class="btn-sm btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-sm btn-apply" id="btnApplyLogo" style="display:none" onclick="applyLogo()">✓ Apply Logo</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <span class="toolbar-title">📋 Shan Inter College — Result Register</span>
+  <span class="tip">✏️ Every field editable — click any cell, header or text</span>
+  <button class="btn btn-logo" onclick="openModal()">🏫 School Logo</button>
+  <button class="btn btn-out" onclick="resetAll()">🔄 Reset</button>
+  <button class="btn btn-gold" onclick="window.print()">🖨️ Print / PDF</button>
+</div>
+
+<!-- CARD -->
+<div class="card">
+
+  <!-- HEADER -->
+  <div class="ch" style="position:relative">
+    <div class="edit-hint">✏️ click text to edit</div>
+    <div class="hi">
+      <!-- SEAL / LOGO — click to open logo picker -->
+      <div style="display:flex;flex-direction:column;align-items:center">
+        <div class="seal" id="sealEl" onclick="openModal()" title="Click to change logo">
+          <span id="sealLetter">S</span>
+        </div>
+        <div class="seal-hint">click to<br/>add logo</div>
+      </div>
+      <div style="flex:1">
+        <div class="cn" contenteditable="true" id="collegeName">Shan Inter College</div>
+        <div class="cs" contenteditable="true" id="collegeAddress">Naroda, Moradabad — Uttar Pradesh</div>
+        <div class="ca" contenteditable="true" id="collegeAffil">✦ U.P. Board Affiliated &nbsp;|&nbsp; Recognised by Madhyamik Shiksha Parishad, U.P. &nbsp;|&nbsp; Est. 2000</div>
+      </div>
+      <div style="text-align:right">
+        <div class="badge" contenteditable="true">Examination Result Register</div>
+        <div class="bsub" style="margin-top:5px">
+          School: <span contenteditable="true" style="outline:none;border-bottom:1px dashed rgba(255,255,255,.3);color:rgba(255,255,255,.7)" id="headerSchoolName">Shan Inter College</span>
+          &nbsp;|&nbsp; Session: <span contenteditable="true" style="outline:none;border-bottom:1px dashed rgba(255,255,255,.3);color:rgba(255,255,255,.7)">2024–25</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- META STRIP — all labels AND values editable -->
+  <div class="meta">
+    <div class="mc">
+      <div class="ml" contenteditable="true">Student Name</div>
+      <div class="mv" contenteditable="true">Aryan Sharma</div>
+    </div>
+    <div class="mc">
+      <div class="ml" contenteditable="true">Serial No.</div>
+      <div class="mv" contenteditable="true">1</div>
+    </div>
+    <div class="mc">
+      <div class="ml" contenteditable="true">Roll No.</div>
+      <div class="mv" contenteditable="true">265 / 603</div>
+    </div>
+    <div class="mc">
+      <div class="ml" contenteditable="true">Admission No.</div>
+      <div class="mv" contenteditable="true">SIC-2022-0265</div>
+    </div>
+    <div class="mc">
+      <div class="ml" contenteditable="true">Class / Section</div>
+      <div class="mv" contenteditable="true">VIII – A</div>
+    </div>
+    <div class="mc">
+      <div class="ml" contenteditable="true">Stream</div>
+      <div class="mv" contenteditable="true">Science</div>
+    </div>
+    <div class="mc">
+      <div class="ml" contenteditable="true">Father's Name</div>
+      <div class="mv" contenteditable="true">Mr. Rajesh Sharma</div>
+    </div>
+    <div class="mc">
+      <div class="ml" contenteditable="true">Mother's Name</div>
+      <div class="mv" contenteditable="true">Mrs. Sunita Sharma</div>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="twrap">
+  <table class="mt" id="mt">
+    <thead>
+      <!-- GROUP ROW — headers editable -->
+      <tr class="grp">
+        <th rowspan="2" style="background:#1a3460;width:22px" contenteditable="true">S.No.</th>
+        <th rowspan="2" style="background:#1a3460;text-align:left;padding-left:8px;min-width:130px" contenteditable="true">Subject / Code</th>
+        <th colspan="4" class="g-mon" contenteditable="true">Monthly Test Marks (Max 20 each)</th>
+        <th colspan="2" class="g-best" contenteditable="true">Marks Obtained</th>
+        <th colspan="4" class="g-hy" contenteditable="true">Half-Yearly Examination</th>
+        <th colspan="4" class="g-an" contenteditable="true">Annual Examination</th>
+        <th colspan="3" class="g-tot" contenteditable="true">Grand Total</th>
+        <th rowspan="2" class="g-tot" style="min-width:95px" contenteditable="true">Result / Remarks</th>
+      </tr>
+      <!-- SUB-HEADER ROW — all editable -->
+      <tr class="shd">
+        <th contenteditable="true">Test I</th>
+        <th contenteditable="true">Test II</th>
+        <th contenteditable="true">Test III</th>
+        <th contenteditable="true">Test IV</th>
+        <th style="background:#152d58" contenteditable="true">Max</th>
+        <th style="background:#152d58" contenteditable="true">Obtained</th>
+        <th contenteditable="true">Max<br/>Marks</th>
+        <th contenteditable="true">Marks<br/>Obtained</th>
+        <th contenteditable="true">Practical</th>
+        <th contenteditable="true">Total</th>
+        <th contenteditable="true">Max<br/>Marks</th>
+        <th contenteditable="true">Marks<br/>Obtained</th>
+        <th contenteditable="true">Practical</th>
+        <th contenteditable="true">Total</th>
+        <th contenteditable="true">Max<br/>Marks</th>
+        <th contenteditable="true">Marks<br/>Obtained</th>
+        <th contenteditable="true">%</th>
+      </tr>
+    </thead>
+    <tbody id="tb"></tbody>
+  </table>
+  </div>
+
+  <!-- BOTTOM — all editable -->
+  <div class="bot">
+    <div class="bc">
+      <div class="bl" contenteditable="true">Class Teacher's Remarks</div>
+      <div class="rt" contenteditable="true">Excellent performance. Keep it up!</div>
+      <div class="sl2"></div>
+      <div class="sn2" contenteditable="true">Class Teacher</div>
+      <div class="sr2" contenteditable="true">Signature &amp; Stamp</div>
+    </div>
+    <div class="bc">
+      <div class="bl" contenteditable="true">Parent / Guardian's Remarks</div>
+      <div class="rt" contenteditable="true"></div>
+      <div class="sl2"></div>
+      <div class="sn2" contenteditable="true">Parent / Guardian</div>
+      <div class="sr2" contenteditable="true">Signature</div>
+    </div>
+    <div class="bc">
+      <div class="bl" contenteditable="true">Principal's Remarks</div>
+      <div class="rt" contenteditable="true">Well done. Strive for higher achievement.</div>
+      <div class="sl2"></div>
+      <div class="sn2" contenteditable="true">Mr. Rajan Verma</div>
+      <div class="sr2" contenteditable="true">Principal</div>
+    </div>
+  </div>
+
+  <!-- FOOTER — editable -->
+  <div class="cf">
+    <span class="fn" contenteditable="true">This is a computer-generated mark sheet. Any alteration is a punishable offence under applicable law.</span>
+    <span class="fs" id="issued" contenteditable="true">Issued: —</span>
+  </div>
+</div>
+
+<!-- LEGEND -->
+<div class="legend">
+  <span class="lt">GRADE SCALE:</span>
+  <span style="display:flex;align-items:center;gap:3px;font-size:10px"><span class="g gAp">A+</span>90–100%</span>
+  <span style="display:flex;align-items:center;gap:3px;font-size:10px"><span class="g gA">A</span>80–89%</span>
+  <span style="display:flex;align-items:center;gap:3px;font-size:10px"><span class="g gBp">B+</span>70–79%</span>
+  <span style="display:flex;align-items:center;gap:3px;font-size:10px"><span class="g gB">B</span>60–69%</span>
+  <span style="display:flex;align-items:center;gap:3px;font-size:10px"><span class="g gC">C</span>50–59%</span>
+  <span style="display:flex;align-items:center;gap:3px;font-size:10px"><span class="g gD">D</span>33–49%</span>
+  <span style="display:flex;align-items:center;gap:3px;font-size:10px"><span class="g gF">F</span>&lt;33%</span>
+  <span style="margin-left:10px;font-size:10px;color:#444"><b>Pass Marks:</b> 33%</span>
+</div>
+
+<script>
+const PASS = 33;
+let currentLogoDataUrl = null;
+let pendingLogoDataUrl = null;
+
+const subjects = [
+  {n:'Hindi',              c:'Lang. – 101', t:[6,5,6,7], hy:{mx:80,ob:70,pr:0}, an:{mx:80,ob:75,pr:0}},
+  {n:'Mathematics',        c:'Math – 201',  t:[6,5,6,7], hy:{mx:80,ob:70,pr:0}, an:{mx:80,ob:75,pr:0}},
+  {n:'English',            c:'Lang. – 102', t:[6,5,6,7], hy:{mx:80,ob:70,pr:0}, an:{mx:80,ob:75,pr:0}},
+  {n:'Social Science',     c:'SS – 301',    t:[6,5,6,7], hy:{mx:80,ob:70,pr:0}, an:{mx:80,ob:75,pr:0}},
+  {n:'Science',            c:'Sci – 401', t:[6,5,6,7], hy:{mx:80,ob:70,pr:0}, an:{mx:80,ob:75,pr:0}},
+  {n:'Art & Craft',        c:'Art – 501', t:[6,5,6,7], hy:{mx:80,ob:70,pr:0}, an:{mx:80,ob:75,pr:0}},
+  {n:'Sanskrit / Urdu',    c:'Lang. – 103',  t:[6,5,6,7], hy:{mx:80,ob:70,pr:0}, an:{mx:80,ob:75,pr:0}},
+  {n:'Agriculture / Home', c:'Voc – 601', t:[6,5,6,7], hy:{mx:80,ob:70,pr:0}, an:{mx:80,ob:75,pr:0}},
+  {n:'Physical Training',  c:'PT – 701',     t:[6,5,6,7], hy:{mx:80,ob:70,pr:0}, an:{mx:80,ob:75,pr:0}},
+];
+
+function gradeInfo(p){
+  if(p>=90)return{l:'A+',c:'gAp'};if(p>=80)return{l:'A',c:'gA'};
+  if(p>=70)return{l:'B+',c:'gBp'};if(p>=60)return{l:'B',c:'gB'};
+  if(p>=50)return{l:'C',c:'gC'};if(p>=33)return{l:'D',c:'gD'};
+  return{l:'F',c:'gF'};
+}
+function barCol(p){return p>=75?'#22c55e':p>=50?'#3b82f6':p>=33?'#f59e0b':'#ef4444'}
+
+function render(){
+  const tb = document.getElementById('tb');
+  tb.innerHTML = '';
+  let gObt=0, gMax=0, anyFail=false;
+
+  subjects.forEach((s, si) => {
+    const tv = s.t.map(v => Number(v)||0);
+    const totalTests = tv.reduce((a,b)=>a+b,0);
+    const monthlyMax = 40;
+
+    const hyObt = Number(s.hy.ob) + Number(s.hy.pr);
+    const anObt = Number(s.an.ob) + Number(s.an.pr);
+    const effectiveMonthlyMax = s.monthlyMax !== undefined ? s.monthlyMax : monthlyMax;
+    const totMax = Number(s.hy.mx) + Number(s.an.mx) + effectiveMonthlyMax;
+    const totObt = hyObt + anObt + totalTests;
+    const pct = totMax ? (totObt/totMax)*100 : 0;
+    const pass = totMax === 0 || pct >= PASS;
+    if(!pass && totMax > 0) anyFail = true;
+    const g = gradeInfo(pct);
+
+    gObt += totObt; gMax += totMax;
+
+    const tCells = tv.map((v,ti) => `
+      <td><input class="e" type="number" min="0" max="100"
+        value="${v||''}" placeholder="—" style="width:28px"
+        oninput="subjects[${si}].t[${ti}]=this.value?Number(this.value):0;render()"/></td>
+    `).join('');
+
+    const tr = document.createElement('tr');
+    tr.className = 'sr';
+    tr.innerHTML = `
+      <td style="font-size:10px;color:#8a9ab0;font-weight:600">
+        <input class="e" type="number" min="1" value="${si+1}" style="width:28px;color:#8a9ab0;font-weight:600"
+          oninput="subjects[${si}].sno=Number(this.value)"/>
+      </td>
+      <td class="sn">
+        <input class="e" type="text" value="${s.n}" placeholder="Subject Name" style="width:100%;font-weight:600;font-size:11px;text-align:left"
+          oninput="subjects[${si}].n=this.value;render()"/>
+        <input class="e" type="text" value="${s.c}" placeholder="Code" style="width:100%;font-size:9px;color:#8a9ab0;text-align:left;margin-top:2px"
+          oninput="subjects[${si}].c=this.value;render()"/>
+      </td>
+      ${tCells}
+      <td style="font-weight:700;background:#eef2f8;color:#152d58">
+        <input class="e" type="number" min="0" value="${effectiveMonthlyMax}" style="width:36px;font-weight:700;color:#152d58"
+          oninput="subjects[${si}].monthlyMax=Number(this.value);render()"/>
+      </td>
+      <td style="font-weight:700;background:#eef2f8;color:#1e3a6e">${totalTests||'—'}</td>
+      <!-- Half-Yearly -->
+      <td><input class="e" type="number" min="0" max="999" value="${s.hy.mx||''}" placeholder="—" style="width:36px"
+          oninput="subjects[${si}].hy.mx=Number(this.value);render()"/></td>
+      <td><input class="e" type="number" min="0" max="999" value="${s.hy.ob||''}" placeholder="—" style="width:36px"
+          oninput="subjects[${si}].hy.ob=Number(this.value);render()"/></td>
+      <td><input class="e" type="number" min="0" max="100" value="${s.hy.pr||''}" placeholder="—" style="width:30px"
+          oninput="subjects[${si}].hy.pr=Number(this.value);render()"/></td>
+      <td style="font-weight:700;color:#163060;background:#f0f4fb">${hyObt||'—'}</td>
+      <!-- Annual -->
+      <td><input class="e" type="number" min="0" max="999" value="${s.an.mx||''}" placeholder="—" style="width:36px"
+          oninput="subjects[${si}].an.mx=Number(this.value);render()"/></td>
+      <td><input class="e" type="number" min="0" max="999" value="${s.an.ob||''}" placeholder="—" style="width:36px"
+          oninput="subjects[${si}].an.ob=Number(this.value);render()"/></td>
+      <td><input class="e" type="number" min="0" max="100" value="${s.an.pr||''}" placeholder="—" style="width:30px"
+          oninput="subjects[${si}].an.pr=Number(this.value);render()"/></td>
+      <td style="font-weight:700;color:#0f2244;background:#f5f0e8">${anObt||'—'}</td>
+      <!-- Grand Total -->
+      <td style="font-weight:700">${totMax||'—'}</td>
+      <td style="font-weight:700;color:#0b1a2e">${totObt||'—'}</td>
+      <td style="font-weight:700;color:${barCol(pct)};font-size:11px">${totMax ? pct.toFixed(1)+'%' : '—'}</td>
+      <!-- Result -->
+      <td style="white-space:nowrap">
+        ${totMax ? `<span class="g ${g.c}">${g.l}</span><br/>` : ''}
+        ${totMax ? (pass ? '<span class="pass">✔ Pass</span>' : '<span class="fail">✘ Fail</span>') : '—'}
+      </td>
+    `;
+    tb.appendChild(tr);
+  });
+
+  // TOTAL ROW
+  const tRow = document.createElement('tr');
+  tRow.className = 'tr';
+  tRow.innerHTML = `
+    <td colspan="16" class="lbl">Total / Aggregate</td>
+    <td style="font-weight:800;font-size:13px">${gMax}</td>
+    <td style="font-weight:800;font-size:13px">${gObt}</td>
+    <td></td>
+    <td></td>
+  `;
+  tb.appendChild(tRow);
+
+  // SUMMARY ROW
+  const overallPct = gMax ? (gObt/gMax)*100 : 0;
+  const g2 = gradeInfo(overallPct);
+  const rl = anyFail ? '✘ FAIL' : '✔ PASS';
+  const rc = anyFail ? '#f87171' : '#4ade80';
+
+  const sRow = document.createElement('tr');
+  sRow.className = 'sumr';
+  sRow.innerHTML = `
+    <td colspan="7" class="lbl">Overall Result / Final Standing</td>
+    <td></td>
+    <td colspan="4"></td>
+    <td colspan="4"></td>
+    <td style="font-size:15px;font-weight:800;color:#e8b655">${gMax}</td>
+    <td style="font-size:15px;font-weight:800;color:#e8b655">${gObt}</td>
+    <td>
+      <div style="font-size:16px;font-weight:800;color:${barCol(overallPct)}">
+        ${overallPct.toFixed(2)}%
+      </div>
+      <div class="bw">
+        <div class="bf" style="width:${overallPct.toFixed(1)}%;background:${barCol(overallPct)}"></div>
+      </div>
+    </td>
+    <td>
+      <span class="g ${g2.c}">${g2.l}</span><br/>
+      <span style="font-weight:800;color:${rc}">${rl}</span>
+    </td>
+  `;
+  tb.appendChild(sRow);
+}
+
+function resetAll(){
+  subjects.forEach(s => {
+    s.t = s.t.map(() => 0);
+    s.hy.ob = 0; s.an.ob = 0;
+    s.hy.pr = 0; s.an.pr = 0;
+  });
+  render();
+}
+
+/* ===== LOGO MODAL ===== */
+function openModal(){
+  document.getElementById('logoModal').classList.add('active');
+  // If logo already set, show remove button
+  if(currentLogoDataUrl){
+    document.getElementById('btnRemoveLogo').style.display = 'inline-block';
+    document.getElementById('logoPreviewImg').src = currentLogoDataUrl;
+    document.getElementById('logoPreviewWrap').style.display = 'block';
+    document.getElementById('btnApplyLogo').style.display = 'inline-block';
+  }
+}
+
+function closeModal(){
+  document.getElementById('logoModal').classList.remove('active');
+  pendingLogoDataUrl = null;
+  if(!currentLogoDataUrl){
+    document.getElementById('logoPreviewWrap').style.display = 'none';
+    document.getElementById('btnApplyLogo').style.display = 'none';
+    document.getElementById('btnRemoveLogo').style.display = 'none';
+  }
+}
+
+function applyLogo(){
+  const urlToApply = pendingLogoDataUrl || currentLogoDataUrl;
+  if(!urlToApply) return;
+  currentLogoDataUrl = urlToApply;
+  const seal = document.getElementById('sealEl');
+  seal.innerHTML = `<img src="${currentLogoDataUrl}" alt="School Logo"/>`;
+  // Remove the click-to-add hint since logo is set
+  const hint = seal.parentElement.querySelector('.seal-hint');
+  if(hint) hint.textContent = 'click to\nchange';
+  closeModal();
+}
+
+function removeLogo(){
+  currentLogoDataUrl = null;
+  pendingLogoDataUrl = null;
+  document.getElementById('sealEl').innerHTML = '<span id="sealLetter">S</span>';
+  const hint = document.getElementById('sealEl').parentElement.querySelector('.seal-hint');
+  if(hint){ hint.innerHTML = 'click to<br/>add logo'; }
+  document.getElementById('logoPreviewWrap').style.display = 'none';
+  document.getElementById('btnApplyLogo').style.display = 'none';
+  document.getElementById('btnRemoveLogo').style.display = 'none';
+  closeModal();
+}
+
+// File input change
+document.getElementById('logoFileInput').addEventListener('change', function(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  if(file.size > 5 * 1024 * 1024){ alert('File too large. Max 5MB.'); return; }
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    pendingLogoDataUrl = ev.target.result;
+    document.getElementById('logoPreviewImg').src = pendingLogoDataUrl;
+    document.getElementById('logoPreviewWrap').style.display = 'block';
+    document.getElementById('btnApplyLogo').style.display = 'inline-block';
+    document.getElementById('btnRemoveLogo').style.display = currentLogoDataUrl ? 'inline-block' : 'none';
+  };
+  reader.readAsDataURL(file);
+});
+
+// Drag and drop
+const drop = document.getElementById('logoDrop');
+drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('dragover'); });
+drop.addEventListener('dragleave', () => drop.classList.remove('dragover'));
+drop.addEventListener('drop', e => {
+  e.preventDefault();
+  drop.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if(!file || !file.type.startsWith('image/')) return;
+  const fakeEvent = { target: { files: [file] } };
+  document.getElementById('logoFileInput').files = e.dataTransfer.files;
+  document.getElementById('logoFileInput').dispatchEvent(new Event('change'));
+});
+
+// Close modal on overlay click
+document.getElementById('logoModal').addEventListener('click', function(e){
+  if(e.target === this) closeModal();
+});
+
+// Date stamp
+document.getElementById('issued').textContent =
+  "Issued: " + new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'});
+
+render();
+</script>
+</body>
+</html>
