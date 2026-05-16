@@ -226,9 +226,9 @@ input.e[type=number]{-moz-appearance:textfield}
       </div>
       <div style="text-align:right">
         <div class="badge" contenteditable="true">Examination Result Register</div>
-        <div class="bsub" style="margin-top:5px">
-          School: <span contenteditable="true" style="outline:none;border-bottom:1px dashed rgba(255,255,255,.3);color:rgba(255,255,255,.7)" id="headerSchoolName">Shan Inter College</span>
-          &nbsp;|&nbsp; Session: <span contenteditable="true" style="outline:none;border-bottom:1px dashed rgba(255,255,255,.3);color:rgba(255,255,255,.7)">2024–25</span>
+        <div class="bsub" style="margin-top:5px;line-height:2">
+          School: <span contenteditable="true" style="outline:none;border-bottom:1px dashed rgba(255,255,255,.4);color:rgba(255,255,255,.8);padding:1px 3px;cursor:text;min-width:30px;display:inline-block" id="headerSchoolName">Shan Inter College</span>
+          &nbsp;|&nbsp; Session: <span contenteditable="true" style="outline:none;border-bottom:1px dashed rgba(255,255,255,.4);color:rgba(255,255,255,.8);padding:1px 3px;cursor:text;min-width:30px;display:inline-block" id="sessionSpan">2024–25</span>
         </div>
       </div>
     </div>
@@ -380,123 +380,158 @@ function gradeInfo(p){
 }
 function barCol(p){return p>=75?'#22c55e':p>=50?'#3b82f6':p>=33?'#f59e0b':'#ef4444'}
 
+/* ── helpers ── */
+function calcRow(s){
+  const tv = s.t.map(v=>Number(v)||0);
+  const totalTests = tv.reduce((a,b)=>a+b,0);
+  const hyObt = Number(s.hy.ob)+Number(s.hy.pr);
+  const anObt = Number(s.an.ob)+Number(s.an.pr);
+  const effectiveMonthlyMax = s.monthlyMax!==undefined ? s.monthlyMax : 40;
+  const totMax = Number(s.hy.mx)+Number(s.an.mx)+effectiveMonthlyMax;
+  const totObt = hyObt+anObt+totalTests;
+  const pct = totMax ? (totObt/totMax)*100 : 0;
+  const pass = totMax===0 || pct>=PASS;
+  return {tv,totalTests,hyObt,anObt,effectiveMonthlyMax,totMax,totObt,pct,pass};
+}
+
+/* ── INITIAL full render — called once on load ── */
 function render(){
   const tb = document.getElementById('tb');
   tb.innerHTML = '';
-  let gObt=0, gMax=0, anyFail=false;
 
-  subjects.forEach((s, si) => {
-    const tv = s.t.map(v => Number(v)||0);
-    const totalTests = tv.reduce((a,b)=>a+b,0);
-    const monthlyMax = 40;
-
-    const hyObt = Number(s.hy.ob) + Number(s.hy.pr);
-    const anObt = Number(s.an.ob) + Number(s.an.pr);
-    const effectiveMonthlyMax = s.monthlyMax !== undefined ? s.monthlyMax : monthlyMax;
-    const totMax = Number(s.hy.mx) + Number(s.an.mx) + effectiveMonthlyMax;
-    const totObt = hyObt + anObt + totalTests;
-    const pct = totMax ? (totObt/totMax)*100 : 0;
-    const pass = totMax === 0 || pct >= PASS;
-    if(!pass && totMax > 0) anyFail = true;
+  subjects.forEach((s,si)=>{
+    const {tv,totalTests,hyObt,anObt,effectiveMonthlyMax,totMax,totObt,pct,pass} = calcRow(s);
     const g = gradeInfo(pct);
 
-    gObt += totObt; gMax += totMax;
-
-    const tCells = tv.map((v,ti) => `
+    const tCells = tv.map((v,ti)=>`
       <td><input class="e" type="number" min="0" max="100"
         value="${v||''}" placeholder="—" style="width:28px"
-        oninput="subjects[${si}].t[${ti}]=this.value?Number(this.value):0;render()"/></td>
+        data-si="${si}" data-ti="${ti}" data-field="t"/></td>
     `).join('');
 
     const tr = document.createElement('tr');
-    tr.className = 'sr';
-    tr.innerHTML = `
+    tr.className='sr';
+    tr.dataset.si=si;
+    tr.innerHTML=`
       <td style="font-size:10px;color:#8a9ab0;font-weight:600">
-        <input class="e" type="number" min="1" value="${si+1}" style="width:28px;color:#8a9ab0;font-weight:600"
-          oninput="subjects[${si}].sno=Number(this.value)"/>
+        <input class="e" type="number" min="1" value="${si+1}" style="width:28px;color:#8a9ab0;font-weight:600"/>
       </td>
       <td class="sn">
-        <input class="e" type="text" value="${s.n}" placeholder="Subject Name" style="width:100%;font-weight:600;font-size:11px;text-align:left"
-          oninput="subjects[${si}].n=this.value;render()"/>
-        <input class="e" type="text" value="${s.c}" placeholder="Code" style="width:100%;font-size:9px;color:#8a9ab0;text-align:left;margin-top:2px"
-          oninput="subjects[${si}].c=this.value;render()"/>
+        <input class="e" type="text" value="${s.n}" placeholder="Subject Name" style="width:100%;font-weight:600;font-size:11px;text-align:left" data-si="${si}" data-field="n"/>
+        <input class="e" type="text" value="${s.c}" placeholder="Code" style="width:100%;font-size:9px;color:#8a9ab0;text-align:left;margin-top:2px" data-si="${si}" data-field="c"/>
       </td>
       ${tCells}
       <td style="font-weight:700;background:#eef2f8;color:#152d58">
-        <input class="e" type="number" min="0" value="${effectiveMonthlyMax}" style="width:36px;font-weight:700;color:#152d58"
-          oninput="subjects[${si}].monthlyMax=Number(this.value);render()"/>
+        <input class="e" type="number" min="0" value="${effectiveMonthlyMax}" style="width:36px;font-weight:700;color:#152d58" data-si="${si}" data-field="monthlyMax"/>
       </td>
-      <td style="font-weight:700;background:#eef2f8;color:#1e3a6e">${totalTests||'—'}</td>
-      <!-- Half-Yearly -->
-      <td><input class="e" type="number" min="0" max="999" value="${s.hy.mx||''}" placeholder="—" style="width:36px"
-          oninput="subjects[${si}].hy.mx=Number(this.value);render()"/></td>
-      <td><input class="e" type="number" min="0" max="999" value="${s.hy.ob||''}" placeholder="—" style="width:36px"
-          oninput="subjects[${si}].hy.ob=Number(this.value);render()"/></td>
-      <td><input class="e" type="number" min="0" max="100" value="${s.hy.pr||''}" placeholder="—" style="width:30px"
-          oninput="subjects[${si}].hy.pr=Number(this.value);render()"/></td>
-      <td style="font-weight:700;color:#163060;background:#f0f4fb">${hyObt||'—'}</td>
-      <!-- Annual -->
-      <td><input class="e" type="number" min="0" max="999" value="${s.an.mx||''}" placeholder="—" style="width:36px"
-          oninput="subjects[${si}].an.mx=Number(this.value);render()"/></td>
-      <td><input class="e" type="number" min="0" max="999" value="${s.an.ob||''}" placeholder="—" style="width:36px"
-          oninput="subjects[${si}].an.ob=Number(this.value);render()"/></td>
-      <td><input class="e" type="number" min="0" max="100" value="${s.an.pr||''}" placeholder="—" style="width:30px"
-          oninput="subjects[${si}].an.pr=Number(this.value);render()"/></td>
-      <td style="font-weight:700;color:#0f2244;background:#f5f0e8">${anObt||'—'}</td>
-      <!-- Grand Total -->
-      <td style="font-weight:700">${totMax||'—'}</td>
-      <td style="font-weight:700;color:#0b1a2e">${totObt||'—'}</td>
-      <td style="font-weight:700;color:${barCol(pct)};font-size:11px">${totMax ? pct.toFixed(1)+'%' : '—'}</td>
-      <!-- Result -->
-      <td style="white-space:nowrap">
-        ${totMax ? `<span class="g ${g.c}">${g.l}</span><br/>` : ''}
-        ${totMax ? (pass ? '<span class="pass">✔ Pass</span>' : '<span class="fail">✘ Fail</span>') : '—'}
+      <td class="calc-testTotal" style="font-weight:700;background:#eef2f8;color:#1e3a6e">${totalTests||'—'}</td>
+      <td><input class="e" type="number" min="0" max="999" value="${s.hy.mx||''}" placeholder="—" style="width:36px" data-si="${si}" data-field="hy.mx"/></td>
+      <td><input class="e" type="number" min="0" max="999" value="${s.hy.ob||''}" placeholder="—" style="width:36px" data-si="${si}" data-field="hy.ob"/></td>
+      <td><input class="e" type="number" min="0" max="100"  value="${s.hy.pr||''}" placeholder="—" style="width:30px" data-si="${si}" data-field="hy.pr"/></td>
+      <td class="calc-hyTotal" style="font-weight:700;color:#163060;background:#f0f4fb">${hyObt||'—'}</td>
+      <td><input class="e" type="number" min="0" max="999" value="${s.an.mx||''}" placeholder="—" style="width:36px" data-si="${si}" data-field="an.mx"/></td>
+      <td><input class="e" type="number" min="0" max="999" value="${s.an.ob||''}" placeholder="—" style="width:36px" data-si="${si}" data-field="an.ob"/></td>
+      <td><input class="e" type="number" min="0" max="100"  value="${s.an.pr||''}" placeholder="—" style="width:30px" data-si="${si}" data-field="an.pr"/></td>
+      <td class="calc-anTotal" style="font-weight:700;color:#0f2244;background:#f5f0e8">${anObt||'—'}</td>
+      <td class="calc-totMax" style="font-weight:700">${totMax||'—'}</td>
+      <td class="calc-totObt" style="font-weight:700;color:#0b1a2e">${totObt||'—'}</td>
+      <td class="calc-pct" style="font-weight:700;color:${barCol(pct)};font-size:11px">${totMax?pct.toFixed(1)+'%':'—'}</td>
+      <td class="calc-result" style="white-space:nowrap">
+        ${totMax?`<span class="g ${g.c}">${g.l}</span><br/>`:''}
+        ${totMax?(pass?'<span class="pass">✔ Pass</span>':'<span class="fail">✘ Fail</span>'):'—'}
       </td>
     `;
     tb.appendChild(tr);
   });
 
   // TOTAL ROW
-  const tRow = document.createElement('tr');
-  tRow.className = 'tr';
-  tRow.innerHTML = `
+  const {gObt,gMax} = calcGrand();
+  const tRow=document.createElement('tr'); tRow.className='tr'; tRow.id='totalRow';
+  tRow.innerHTML=`
     <td colspan="16" class="lbl">Total / Aggregate</td>
-    <td style="font-weight:800;font-size:13px">${gMax}</td>
-    <td style="font-weight:800;font-size:13px">${gObt}</td>
-    <td></td>
-    <td></td>
-  `;
+    <td id="grandMax" style="font-weight:800;font-size:13px">${gMax}</td>
+    <td id="grandObt" style="font-weight:800;font-size:13px">${gObt}</td>
+    <td></td><td></td>`;
   tb.appendChild(tRow);
 
   // SUMMARY ROW
-  const overallPct = gMax ? (gObt/gMax)*100 : 0;
-  const g2 = gradeInfo(overallPct);
-  const rl = anyFail ? '✘ FAIL' : '✔ PASS';
-  const rc = anyFail ? '#f87171' : '#4ade80';
+  const sumRow=document.createElement('tr'); sumRow.className='sumr'; sumRow.id='sumRow';
+  tb.appendChild(sumRow);
+  updateSummary(gObt,gMax);
 
-  const sRow = document.createElement('tr');
-  sRow.className = 'sumr';
-  sRow.innerHTML = `
+  // Attach single delegated listener
+  tb.addEventListener('input', onTableInput);
+}
+
+function calcGrand(){
+  let gObt=0, gMax=0;
+  subjects.forEach(s=>{ const r=calcRow(s); gObt+=r.totObt; gMax+=r.totMax; });
+  return {gObt,gMax};
+}
+
+/* ── SMART UPDATE — only patches calculated cells, never destroys inputs ── */
+function onTableInput(e){
+  const inp = e.target;
+  const si = inp.dataset.si;
+  if(si===undefined) return;
+  const field = inp.dataset.field;
+  const val = inp.value==='' ? 0 : (inp.type==='text' ? inp.value : Number(inp.value));
+
+  // Write back to data
+  if(field==='t'){
+    subjects[si].t[inp.dataset.ti] = val;
+  } else if(field==='n'){ subjects[si].n=val;
+  } else if(field==='c'){ subjects[si].c=val;
+  } else if(field==='monthlyMax'){ subjects[si].monthlyMax=val;
+  } else if(field==='hy.mx'){ subjects[si].hy.mx=val;
+  } else if(field==='hy.ob'){ subjects[si].hy.ob=val;
+  } else if(field==='hy.pr'){ subjects[si].hy.pr=val;
+  } else if(field==='an.mx'){ subjects[si].an.mx=val;
+  } else if(field==='an.ob'){ subjects[si].an.ob=val;
+  } else if(field==='an.pr'){ subjects[si].an.pr=val;
+  }
+
+  // Find the row and patch only the calculated cells
+  const row = document.querySelector(`tr[data-si="${si}"]`);
+  if(!row) return;
+  const r = calcRow(subjects[si]);
+  const g = gradeInfo(r.pct);
+
+  row.querySelector('.calc-testTotal').textContent = r.totalTests||'—';
+  row.querySelector('.calc-hyTotal').textContent   = r.hyObt||'—';
+  row.querySelector('.calc-anTotal').textContent   = r.anObt||'—';
+  row.querySelector('.calc-totMax').textContent    = r.totMax||'—';
+  row.querySelector('.calc-totObt').textContent    = r.totObt||'—';
+  const pctCell = row.querySelector('.calc-pct');
+  pctCell.textContent = r.totMax ? r.pct.toFixed(1)+'%' : '—';
+  pctCell.style.color = barCol(r.pct);
+  row.querySelector('.calc-result').innerHTML =
+    r.totMax ? `<span class="g ${g.c}">${g.l}</span><br/>${r.pass?'<span class="pass">✔ Pass</span>':'<span class="fail">✘ Fail</span>'}` : '—';
+
+  // Update grand totals
+  const {gObt,gMax} = calcGrand();
+  document.getElementById('grandMax').textContent = gMax;
+  document.getElementById('grandObt').textContent = gObt;
+  updateSummary(gObt,gMax);
+}
+
+function updateSummary(gObt,gMax){
+  const overallPct = gMax ? (gObt/gMax)*100 : 0;
+  const g2=gradeInfo(overallPct);
+  const anyFail = subjects.some(s=>{ const r=calcRow(s); return r.totMax>0 && !r.pass; });
+  const rl=anyFail?'✘ FAIL':'✔ PASS';
+  const rc=anyFail?'#f87171':'#4ade80';
+  document.getElementById('sumRow').innerHTML=`
     <td colspan="7" class="lbl">Overall Result / Final Standing</td>
-    <td></td>
-    <td colspan="4"></td>
-    <td colspan="4"></td>
+    <td></td><td colspan="4"></td><td colspan="4"></td>
     <td style="font-size:15px;font-weight:800;color:#e8b655">${gMax}</td>
     <td style="font-size:15px;font-weight:800;color:#e8b655">${gObt}</td>
     <td>
-      <div style="font-size:16px;font-weight:800;color:${barCol(overallPct)}">
-        ${overallPct.toFixed(2)}%
-      </div>
-      <div class="bw">
-        <div class="bf" style="width:${overallPct.toFixed(1)}%;background:${barCol(overallPct)}"></div>
-      </div>
+      <div style="font-size:16px;font-weight:800;color:${barCol(overallPct)}">${overallPct.toFixed(2)}%</div>
+      <div class="bw"><div class="bf" style="width:${overallPct.toFixed(1)}%;background:${barCol(overallPct)}"></div></div>
     </td>
-    <td>
-      <span class="g ${g2.c}">${g2.l}</span><br/>
-      <span style="font-weight:800;color:${rc}">${rl}</span>
-    </td>
+    <td><span class="g ${g2.c}">${g2.l}</span><br/><span style="font-weight:800;color:${rc}">${rl}</span></td>
   `;
-  tb.appendChild(sRow);
 }
 
 function resetAll(){
@@ -504,6 +539,7 @@ function resetAll(){
     s.t = s.t.map(() => 0);
     s.hy.ob = 0; s.an.ob = 0;
     s.hy.pr = 0; s.an.pr = 0;
+    delete s.monthlyMax;
   });
   render();
 }
